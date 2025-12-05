@@ -1,142 +1,52 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Admin — FAI FAI POS</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+    <title>FAI FAI POS - Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            background:#f2f2f2;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+        .box {
+            background:white;
+            padding:30px;
+            width:300px;
+            border-radius:10px;
+            box-shadow:0 0 10px #0003;
+        }
+        input {
+            width:100%;
+            padding:10px;
+            margin:10px 0;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+        button {
+            width:100%;
+            padding:10px;
+            background:#28a745;
+            color:white;
+            border:none;
+            border-radius:5px;
+            font-size:16px;
+        }
+    </style>
 </head>
-
-<!-- 🚨 LOGIN PROTECTION -->
-<script>
-if (localStorage.getItem("adminLogged") !== "yes") {
-    alert("Please Login First");
-    window.location.href = "login.html";
-}
-</script>
-
 <body>
 
-<!-- 👉 LOGOUT BUTTON (Top Right) -->
-<div style="
-     position:fixed;
-     top:10px;
-     right:10px;
-     z-index:999;">
-  <button onclick="logout()" style="padding:8px 14px;background:#d00;color:#fff;border:none;border-radius:5px;">
-    Logout
-  </button>
+<div class="box">
+    <h2>Admin Login</h2>
+
+    <input id="username" type="text" placeholder="Enter Username">
+    <input id="password" type="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
 </div>
 
-<script>
-function logout() {
-    localStorage.removeItem("adminLogged");
-    alert("Logged out successfully");
-    window.location.href = "login.html";
-}
-</script>
-
-<header class="topbar"><h1>Admin Panel</h1></header>
-
-<main style="padding:18px;display:grid;grid-template-columns:1fr 340px;gap:18px">
-  <section>
-    <div class="card">
-      <h3>Add product</h3>
-      <div class="form-row"><input id="pname" placeholder="Name"></div>
-      <div class="form-row"><input id="pprice" placeholder="Price" type="number"></div>
-      <div class="form-row"><input id="pcat" placeholder="Category"></div>
-      <div class="form-row"><button id="addProd">Add product</button></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <h3>Products</h3>
-      <div id="productList"></div>
-    </div>
-  </section>
-
-  <aside>
-    <div class="card">
-      <h3>Store Settings</h3>
-      <div class="form-row"><input id="storeName" placeholder="Store name"></div>
-      <div class="form-row"><input id="currency" placeholder="Currency (AED)"></div>
-      <div><button id="saveSettings">Save</button></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <h3>Import sample products</h3>
-      <button id="importSample">Import sample (products.json)</button>
-    </div>
-  </aside>
-</main>
-
-<script src="app.js"></script>
-
-<script>
-function renderProducts(){
-  const products = POSDB.getProducts();
-  const el = document.getElementById('productList');
-  if(!el) return;
-  el.innerHTML = products.map(p=>`
-    <div class="row product">
-      <div style="flex:1;text-align:left"><strong>${p.name}</strong><div class="small">${p.cat}</div></div>
-      <div style="text-align:right">${POSDB.fmtMoney(p.price)}<br>
-        <button onclick="deleteProd('${p.id}')">Delete</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function deleteProd(id){
-  if(!confirm('Delete product?')) return;
-  POSDB.setProducts(POSDB.getProducts().filter(x=>x.id!==id));
-  renderProducts();
-}
-
-document.getElementById('addProd').addEventListener('click',()=>{
-  const name=document.getElementById('pname').value.trim();
-  const price=parseFloat(document.getElementById('pprice').value)||0;
-  const cat=document.getElementById('pcat').value.trim()||'General';
-  if(!name) return alert('Name required');
-  POSDB.addProduct({id:POSDB.uid('p'),name,price,cat});
-  document.getElementById('pname').value='';
-  document.getElementById('pprice').value='';
-  document.getElementById('pcat').value='';
-  renderProducts();
-});
-
-document.getElementById('importSample').addEventListener('click', async ()=>{
-  try{
-    const r = await fetch('products.json'); 
-    const data = await r.json();
-    const db = POSDB.loadDB();
-    data.forEach(p=>{
-      if(!db.products.find(x=>x.name===p.name)) 
-          db.products.push(Object.assign({id:POSDB.uid('p')},p));
-    });
-    POSDB.saveDB(db);
-    renderProducts();
-    alert('Imported');
-  }catch(e){ 
-    alert('Import failed'); 
-    console.error(e); 
-  }
-});
-
-document.getElementById('saveSettings').addEventListener('click',()=>{
-  const db = POSDB.loadDB();
-  db.settings.storeName = document.getElementById('storeName').value||db.settings.storeName;
-  db.settings.currency = document.getElementById('currency').value||db.settings.currency;
-  POSDB.saveDB(db);
-  alert('Saved');
-});
-
-document.addEventListener('DOMContentLoaded',()=>{
-  const db = POSDB.loadDB();
-  document.getElementById('storeName').value = db.settings.storeName || '';
-  document.getElementById('currency').value = db.settings.currency || 'AED';
-  renderProducts();
-});
-</script>
-
+<script src="scripts/login.js"></script>
 </body>
 </html>
