@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Waiter</title><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><h1>Waiter — Create Order</h1></header>
+<main style="padding:18px">
+  <div class="card">
+    <label>Table / Customer</label>
+    <input id="tableNo" placeholder="Table 5 or Customer name">
+    <h3>Menu</h3>
+    <div id="prodArea" class="products-grid"></div>
+    <h3>Order</h3>
+    <div id="orderList"></div>
+    <div style="margin-top:12px"><button id="sendOrder">Send to Kitchen</button></div>
+  </div>
+</main>
+<script src="app.js"></script>
+<script>
+let ORDER_ITEMS = [];
+function loadMenu(){
+  const db = POSDB.loadDB();
+  const el = document.getElementById('prodArea');
+  el.innerHTML = db.products.map(p=>`<div class="product"><div><strong>${p.name}</strong></div><div class="small">${POSDB.fmtMoney(p.price)}</div><div style="margin-top:6px"><button onclick="add('${p.id}')">Add</button></div></div>`).join('');
+}
+function add(id){
+  const db=POSDB.loadDB(); const p=db.products.find(x=>x.id===id);
+  if(!p) return;
+  const it = ORDER_ITEMS.find(x=>x.id===id);
+  if(it) it.qty++; else ORDER_ITEMS.push({id:p.id,name:p.name,qty:1,price:p.price});
+  renderOrder();
+}
+function renderOrder(){
+  const el = document.getElementById('orderList');
+  if(ORDER_ITEMS.length===0) { el.innerHTML='<div class="small">No items</div>'; return; }
+  el.innerHTML = ORDER_ITEMS.map(i=>`<div class="row small">${i.name} x${i.qty} <button onclick="dec('${i.id}')">-</button></div>`).join('');
+}
+function dec(id){
+  const it=ORDER_ITEMS.find(x=>x.id===id); if(!it) return; it.qty--; if(it.qty<=0) ORDER_ITEMS=ORDER_ITEMS.filter(x=>x.id!==id); renderOrder();
+}
+document.getElementById('sendOrder').addEventListener('click',()=>{
+  if(ORDER_ITEMS.length===0) return alert('No items');
+  const table = document.getElementById('tableNo').value || 'Takeaway';
+  const order = { id: POSDB.uid('k'), items: ORDER_ITEMS, table, status:'pending', created:Date.now() };
+  POSDB.createKitchenOrder(order);
+  ORDER_ITEMS=[]; renderOrder(); document.getElementById('tableNo').value='';
+  alert('Sent to kitchen');
+});
+loadMenu(); renderOrder();
+</script>
+</body>
+</html>
