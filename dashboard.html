@@ -3,36 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dashboard — FAI FAI POS</title>
+  <title>FAI FAI POS — Premium Dashboard</title>
 
-  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
-    body{font-family:Inter,system-ui,Arial;margin:0;background:#f6f7fb;color:#111}
-    .container{max-width:1200px;margin:18px auto;padding:12px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    /* ====== Premium glass style ====== */
+    :root{
+      --bg:#0f1724;
+      --card-bg: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.06);
+      --accent:#D4AF37; /* gold */
+      --muted: rgba(255,255,255,0.6);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:
+      linear-gradient(135deg,#071029 0%, #0f1724 60%); color:#fff}
+    .wrap{max-width:1280px;margin:20px auto;padding:18px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    h1{margin:0;font-weight:700;letter-spacing:0.2px}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--accent);color:#111;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .muted{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px}
+    .filters{display:flex;gap:8px;align-items:center}
+
+    /* Grid */
     .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
-    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
-    .kpi-title{font-size:13px;color:#666}
-    .kpi-val{font-size:20px;font-weight:700;margin-top:6px}
-    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-    .btn{padding:8px 10px;border-radius:8px;border:0;background:#0b74de;color:#fff;cursor:pointer}
-    .muted{background:#eee;color:#333}
-    .layout{display:grid;grid-template-columns:1fr 420px;gap:12px}
-    .right-col{display:flex;flex-direction:column;gap:12px}
-    .list{list-style:none;padding:0;margin:0}
-    .list li{padding:8px;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;align-items:center}
-    @media(max-width:980px){ .kpi-grid{grid-template-columns:repeat(2,1fr)} .layout{grid-template-columns:1fr} }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px);
+      padding:14px;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);
+    }
+    .kpi-title{font-size:13px;color:rgba(255,255,255,0.7)}
+    .kpi-val{font-size:22px;font-weight:700;margin-top:8px;color:#fff}
+    .sub{font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px}
+
+    .layout{display:grid;grid-template-columns:1fr 380px;gap:12px}
+    .chart-card{height:260px}
+    canvas{width:100% !important;height:100% !important;display:block}
+
+    .list{list-style:none;padding:0;margin:0;max-height:220px;overflow:auto}
+    .list li{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center}
+    .small{font-size:12px;color:rgba(255,255,255,0.65)}
+    .tag{background:rgba(255,255,255,0.04);padding:6px;border-radius:6px;font-size:12px}
+
+    @media(max-width:980px){
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .layout{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
     <div class="topbar">
-      <div><h2 style="margin:0">FAI FAI POS — Dashboard</h2><div class="small">Live reports • Sales • Expenses • Profit</div></div>
       <div>
-        <button id="btnRefresh" class="btn muted">Refresh</button>
-        <button id="btnExport" class="btn">Export CSV</button>
+        <h1>FAI FAI POS — Dashboard</h1>
+        <div class="small">Premium view • Live overview</div>
+      </div>
+
+      <div class="controls">
+        <div class="filters">
+          From: <input id="f_from" type="date" class="muted" />
+          To: <input id="f_to" type="date" class="muted" />
+          <select id="preset" class="muted">
+            <option value="">Select</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+        <button id="refreshBtn" class="muted">Refresh</button>
+        <button id="exportBtn" class="btn">Export CSV</button>
       </div>
     </div>
 
@@ -41,105 +84,350 @@
       <div class="card">
         <div class="kpi-title">Total Orders</div>
         <div id="k_orders" class="kpi-val">0</div>
+        <div class="sub">Completed in selected range</div>
       </div>
+
       <div class="card">
         <div class="kpi-title">Gross Revenue</div>
         <div id="k_revenue" class="kpi-val">AED 0.00</div>
+        <div class="sub">Total sales</div>
       </div>
+
       <div class="card">
         <div class="kpi-title">Total Expenses</div>
         <div id="k_expenses" class="kpi-val">AED 0.00</div>
+        <div class="sub">Sum of expenses</div>
       </div>
+
       <div class="card">
         <div class="kpi-title">Net (Revenue − Expenses)</div>
         <div id="k_net" class="kpi-val">AED 0.00</div>
+        <div class="sub">Net earnings</div>
       </div>
     </div>
 
-    <!-- Opening/Closing row -->
+    <!-- Opening / Closing / Pending / Profit% -->
     <div class="kpi-grid" style="margin-bottom:18px">
-      <div class="card">
-        <div class="kpi-title">Opening Amount</div>
-        <div id="k_opening" class="kpi-val">AED 0.00</div>
-      </div>
-      <div class="card">
-        <div class="kpi-title">Closing Amount</div>
-        <div id="k_closing" class="kpi-val">AED 0.00</div>
-      </div>
-      <div class="card">
-        <div class="kpi-title">Pending Orders</div>
-        <div id="k_pending" class="kpi-val">0</div>
-      </div>
-      <div class="card">
-        <div class="kpi-title">Estimated Profit %</div>
-        <div id="k_profitpct" class="kpi-val">30%</div>
-      </div>
+      <div class="card"><div class="kpi-title">Opening Amount</div><div id="k_opening" class="kpi-val">AED 0.00</div></div>
+      <div class="card"><div class="kpi-title">Closing Amount</div><div id="k_closing" class="kpi-val">AED 0.00</div></div>
+      <div class="card"><div class="kpi-title">Pending Orders</div><div id="k_pending" class="kpi-val">0</div></div>
+      <div class="card"><div class="kpi-title">Estimated Profit %</div><div id="k_profitpct" class="kpi-val">30%</div></div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters">
-      <label>From: <input type="date" id="f_from"></label>
-      <label>To: <input type="date" id="f_to"></label>
-      <button id="presetToday" class="btn muted">Today</button>
-      <button id="presetYesterday" class="btn muted">Yesterday</button>
-      <button id="presetMonth" class="btn muted">This Month</button>
-      <button id="presetYear" class="btn muted">This Year</button>
-      <label style="margin-left:8px">Profit % <input id="profitPct" type="number" value="30" style="width:70px;padding:6px;border-radius:6px;border:1px solid #ddd"></label>
-    </div>
-
-    <!-- Charts + Right column -->
+    <!-- Charts + right column -->
     <div class="layout">
       <div>
-        <div class="card" style="margin-bottom:12px">
-          <h3 style="margin:0 0 8px 0">Sales (Last 30 days)</h3>
-          <canvas id="chartSales30" height="120"></canvas>
+        <div class="card chart-card">
+          <h3 style="margin:0 0 8px 0">Sales — Last 30 days</h3>
+          <canvas id="sales30"></canvas>
         </div>
 
-        <div class="card" style="margin-bottom:12px">
-          <h3 style="margin:0 0 8px 0">Sales vs Expenses (30 days)</h3>
-          <canvas id="chartSalesVsExpenses" height="120"></canvas>
+        <div class="card chart-card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Sales vs Expenses</h3>
+          <canvas id="salesVsExp"></canvas>
         </div>
 
-        <div class="card" style="margin-bottom:12px">
+        <div class="card chart-card" style="margin-top:12px">
           <h3 style="margin:0 0 8px 0">Monthly Sales (This Year)</h3>
-          <canvas id="chartMonthly" height="120"></canvas>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h3 style="margin:0 0 8px 0">Top Items</h3>
-          <canvas id="chartTopItems" height="140"></canvas>
+          <canvas id="monthlyChart"></canvas>
         </div>
       </div>
 
       <div class="right-col">
         <div class="card">
-          <h3 style="margin:0 0 8px 0">Payment Split</h3>
-          <canvas id="chartPayment" height="180"></canvas>
+          <h3 style="margin:0 0 10px 0">Payment Split</h3>
+          <canvas id="paymentChart" height="150"></canvas>
         </div>
 
-        <div class="card">
-          <h3 style="margin:0 0 8px 0">Order Source</h3>
-          <canvas id="chartSource" height="140"></canvas>
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px 0">Order Source</h3>
+          <canvas id="sourceChart" height="120"></canvas>
         </div>
 
-        <div class="card">
-          <h3 style="margin:0 0 8px 0">Recent Orders</h3>
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px 0">Top Items</h3>
+          <canvas id="topItems" height="140"></canvas>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px 0">Recent Orders</h3>
           <ul id="recentOrders" class="list"></ul>
         </div>
 
-        <div class="card">
-          <h3 style="margin:0 0 8px 0">Recent Expenses</h3>
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px 0">Recent Expenses</h3>
           <ul id="recentExpenses" class="list"></ul>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Optional Firebase: create database_config.js with your config if you want Firestore -->
-  <!-- <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="database_config.js"></script> -->
+  <!-- ========== SCRIPT ========== -->
+  <script>
+  /* Premium Dashboard JS
+     Uses window.FFP helpers if present, otherwise localStorage fallbacks:
+     - ff_sales : array of {id, created, total, items, payment, source}
+     - ff_expenses : array of {id, created, amount, note, category}
+     - ff_registers : array of {date, opening, closing}
+  */
 
-  <script src="dashboard.js"></script>
+  // Chart instances
+  let charts = {};
+
+  // Helper: read local or FFP
+  function readDB(){
+    const sales = (window.FFP && FFP.getSales) ? FFP.getSales() : JSON.parse(localStorage.getItem('ff_sales')||'[]');
+    const expenses = JSON.parse(localStorage.getItem('ff_expenses')||'[]');
+    const registers = JSON.parse(localStorage.getItem('ff_registers')||'[]');
+    const orders = (window.FFP && FFP.getOrders) ? FFP.getOrders() : JSON.parse(localStorage.getItem('ff_orders')||'[]');
+    const products = (window.FFP && FFP.getProducts) ? FFP.getProducts() : JSON.parse(localStorage.getItem('ff_products')||'[]');
+    const settings = JSON.parse(localStorage.getItem('ff_settings')||'{"profitPercent":30}');
+    return { sales, expenses, registers, orders, products, settings };
+  }
+
+  function parseDateField(o){
+    return o.created || o.createdAt || o.date || o.createdDate || new Date().toISOString();
+  }
+
+  function fmtMoney(v){ return 'AED ' + Number(v||0).toFixed(2); }
+
+  function getRangeFilter(){
+    const fromVal = document.getElementById('f_from').value;
+    const toVal = document.getElementById('f_to').value;
+    const from = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+    const to = toVal ? new Date(toVal + 'T23:59:59') : null;
+    return { from, to };
+  }
+
+  function inRange(dateStr, from, to){
+    const d = new Date(dateStr);
+    if(from && d < from) return false;
+    if(to && d > to) return false;
+    return true;
+  }
+
+  // compute metrics based on selected range
+  function computeMetrics(){
+    const db = readDB();
+    const {from, to} = getRangeFilter();
+    const salesAll = db.sales || [];
+    const expensesAll = db.expenses || [];
+    const sales = salesAll.filter(s => inRange(parseDateField(s), from, to));
+    const expenses = expensesAll.filter(e => inRange(parseDateField(e), from, to));
+
+    const totalOrders = sales.length;
+    const gross = sales.reduce((a,s)=> a + Number(s.total || 0), 0);
+    const totalExpenses = expenses.reduce((a,e)=> a + Number(e.amount || 0), 0);
+    const net = gross - totalExpenses;
+    const pending = (db.orders||[]).filter(o=> o.status && ['new','in-progress','pending'].includes(o.status)).length;
+
+    // payment split
+    const payments = { cash:0, visa:0, talabat:0, noon:0, other:0 };
+    sales.forEach(s=>{
+      const p = (s.payment || s.paymentMethod || '').toString().toLowerCase();
+      const v = Number(s.total || 0);
+      if(p.includes('cash')) payments.cash += v;
+      else if(p.includes('visa')||p.includes('card')) payments.visa += v;
+      else if(p.includes('talabat')) payments.talabat += v;
+      else if(p.includes('noon')) payments.noon += v;
+      else payments.other += v;
+    });
+
+    // sources
+    const sources = { dinein:0, takeaway:0, talabat:0, noon:0, other:0 };
+    sales.forEach(s=>{
+      const src = (s.source || s.orderSource || '').toString().toLowerCase();
+      const v = Number(s.total || 0);
+      if(src.includes('talabat')) sources.talabat += v;
+      else if(src.includes('noon')) sources.noon += v;
+      else if(src.includes('take')||src.includes('delivery')) sources.takeaway += v;
+      else if(src.includes('dine')||src.includes('table')) sources.dinein += v;
+      else sources.other += v;
+    });
+
+    // top items
+    const itemsAgg = {};
+    sales.forEach(s=>{
+      (s.items||[]).forEach(it=>{
+        const id = it.id || it.name;
+        if(!itemsAgg[id]) itemsAgg[id] = { name: it.name || id, qty:0, rev:0 };
+        itemsAgg[id].qty += Number(it.qty||1);
+        itemsAgg[id].rev += Number(it.price||0) * Number(it.qty||1);
+      });
+    });
+    const topItems = Object.keys(itemsAgg).map(k=> itemsAgg[k]).sort((a,b)=> b.qty - a.qty).slice(0,10);
+
+    // opening/closing
+    const dateFor = document.getElementById('f_from').value || new Date().toISOString().slice(0,10);
+    const reg = (db.registers||[]).find(r=> (r.date||'').slice(0,10) === dateFor) || (db.registers||[]).slice(-1)[0] || null;
+    const opening = reg ? Number(reg.opening || 0) : 0;
+    const closing = reg ? Number(reg.closing || 0) : 0;
+
+    return { sales, expenses, totalOrders, gross, totalExpenses, net, pending, payments, sources, topItems, opening, closing, settings: db.settings, recentOrders: sales.slice(-10).reverse(), recentExpenses: expenses.slice(-10).reverse() };
+  }
+
+  /* ===== RENDER ===== */
+  function renderKPIs(m){
+    document.getElementById('k_orders').textContent = m.totalOrders;
+    document.getElementById('k_revenue').textContent = fmtMoney(m.gross);
+    document.getElementById('k_expenses').textContent = fmtMoney(m.totalExpenses);
+    document.getElementById('k_net').textContent = fmtMoney(m.net);
+    document.getElementById('k_opening').textContent = fmtMoney(m.opening);
+    document.getElementById('k_closing').textContent = fmtMoney(m.closing);
+    document.getElementById('k_pending').textContent = m.pending;
+    document.getElementById('k_profitpct').textContent = (document.getElementById('profitPct') ? document.getElementById('profitPct').value : (m.settings && m.settings.profitPercent) || 30) + '%';
+  }
+
+  /* ===== CHARTS ===== */
+  function renderSales30(m){
+    const labels = [];
+    const salesMap = {};
+    const expMap = {};
+    const now = new Date();
+    for(let i=29;i>=0;i--){
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
+      const k = d.toISOString().slice(0,10);
+      labels.push(k);
+      salesMap[k]=0; expMap[k]=0;
+    }
+    m.sales.forEach(s => { const k = (parseDateField(s)+'').slice(0,10); if(salesMap[k]!==undefined) salesMap[k]+=Number(s.total||0); });
+    m.expenses.forEach(e => { const k = (parseDateField(e)+'').slice(0,10); if(expMap[k]!==undefined) expMap[k]+=Number(e.amount||0); });
+
+    const dataSales = labels.map(l=> salesMap[l]||0);
+    const dataExp = labels.map(l=> expMap[l]||0);
+
+    const ctx = document.getElementById('sales30').getContext('2d');
+    if(charts.sales30) charts.sales30.destroy();
+    charts.sales30 = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets:[
+        { label:'Sales', data:dataSales, borderColor:'#D4AF37', backgroundColor:'rgba(212,175,55,0.08)', fill:true, tension:0.25 },
+        { label:'Expenses', data:dataExp, borderColor:'#FF6B6B', backgroundColor:'rgba(255,107,107,0.06)', fill:true, tension:0.25 }
+      ]},
+      options:{ responsive:true, plugins:{legend:{position:'top'}} }
+    });
+  }
+
+  function renderSalesVsExp(m){
+    // reuse 30-day maps
+    const labels = [];
+    const salesMap = {}; const expMap = {};
+    const now = new Date();
+    for(let i=29;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth(), now.getDate()-i); const k=d.toISOString().slice(0,10); labels.push(k); salesMap[k]=0; expMap[k]=0; }
+    m.sales.forEach(s=>{ const k=(parseDateField(s)+'').slice(0,10); if(salesMap[k]!==undefined) salesMap[k]+=Number(s.total||0); });
+    m.expenses.forEach(e=>{ const k=(parseDateField(e)+'').slice(0,10); if(expMap[k]!==undefined) expMap[k]+=Number(e.amount||0); });
+    const data1 = labels.map(l=>salesMap[l]||0); const data2 = labels.map(l=>expMap[l]||0);
+
+    const ctx = document.getElementById('salesVsExp').getContext('2d');
+    if(charts.salesVsExp) charts.salesVsExp.destroy();
+    charts.salesVsExp = new Chart(ctx, {
+      type:'bar',
+      data:{ labels, datasets:[ { label:'Sales', data:data1, backgroundColor:'#D4AF37' }, { label:'Expenses', data:data2, backgroundColor:'#FF6B6B' } ] },
+      options:{ responsive:true, plugins:{legend:{position:'top'}}, scales:{x:{display:false}} }
+    });
+  }
+
+  function renderMonthly(m){
+    // monthly totals for current year
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const map = {}; for(let i=1;i<=12;i++){ const k=(i<10?'0'+i:''+i); map[k]=0; }
+    m.sales.forEach(s=>{ const d=(parseDateField(s)+'').slice(0,10); if(!d) return; const y=d.slice(0,4); if(y!=new Date().getFullYear()+'') return; const mm=d.slice(5,7); map[mm]+=Number(s.total||0); });
+    const labels = Object.keys(map).map(k=> months[parseInt(k,10)-1]);
+    const data = Object.keys(map).map(k=> map[k]);
+
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    if(charts.monthly) charts.monthly.destroy();
+    charts.monthly = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'Monthly Sales', data, borderColor:'#D4AF37', fill:true, backgroundColor:'rgba(212,175,55,0.06)'}] }, options:{responsive:true} });
+  }
+
+  function renderPayment(m){
+    const p = m.payments;
+    const ctx = document.getElementById('paymentChart').getContext('2d');
+    if(charts.payment) charts.payment.destroy();
+    charts.payment = new Chart(ctx, { type:'pie', data:{ labels:['Cash','Visa','Talabat','Noon','Other'], datasets:[{ data:[p.cash,p.visa,p.talabat,p.noon,p.other], backgroundColor:['#16a34a','#0b74de','#f59e0b','#ef4444','#6b7280'] }]}, options:{responsive:true} });
+  }
+
+  function renderSource(m){
+    const s = m.sources;
+    const ctx = document.getElementById('sourceChart').getContext('2d');
+    if(charts.source) charts.source.destroy();
+    charts.source = new Chart(ctx, { type:'doughnut', data:{ labels:['Dine-In','Takeaway','Talabat','Noon','Other'], datasets:[{ data:[s.dinein,s.takeaway,s.talabat,s.noon,s.other], backgroundColor:['#60a5fa','#f97316','#f59e0b','#ef4444','#94a3b8'] }]}, options:{responsive:true} });
+  }
+
+  function renderTopItems(m){
+    const arr = m.topItems;
+    const labels = arr.map(x=> x.name);
+    const data = arr.map(x=> x.qty);
+    const ctx = document.getElementById('topItems').getContext('2d');
+    if(charts.top) charts.top.destroy();
+    charts.top = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Qty', data, backgroundColor:'#7c3aed' }] }, options:{responsive:true, plugins:{legend:{display:false}} } });
+  }
+
+  function renderRecent(m){
+    const rEl = document.getElementById('recentOrders');
+    rEl.innerHTML = '';
+    (m.recentOrders||[]).forEach(o=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<div><strong>${o.id||o.orderId||'ORD'}</strong><div class="small">${new Date(parseDateField(o)).toLocaleString()}</div></div><div class="tag">${fmtMoney(o.total||0)}</div>`;
+      rEl.appendChild(li);
+    });
+    const re = document.getElementById('recentExpenses');
+    re.innerHTML = '';
+    (m.recentExpenses||[]).forEach(e=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<div><strong>${e.id||'EXP'}</strong><div class="small">${new Date(parseDateField(e)).toLocaleString()}</div><div class="small">${e.note||e.category||''}</div></div><div class="tag">${fmtMoney(e.amount||0)}</div>`;
+      re.appendChild(li);
+    });
+  }
+
+  /* ===== Export CSV ===== */
+  function exportCSV(m){
+    const rows = [];
+    rows.push(['type','id','created','items_or_note','amount','payment','source']);
+    (m.sales||[]).forEach(s=>{
+      rows.push(['sale', s.id||'', parseDateField(s), (s.items||[]).map(i=>i.name+' x'+(i.qty||1)).join('; '), s.total||0, s.payment||'', s.source||'']);
+    });
+    (m.expenses||[]).forEach(e=>{
+      rows.push(['expense', e.id||'', parseDateField(e), e.note||e.category||'', e.amount||0, '', '']);
+    });
+    const csv = rows.map(r=> r.map(c=> `"${(''+c).replace(/"/g,'""')}"`).join(',')).join('\\n');
+    const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pos_export.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+
+  /* ===== Main refresh ===== */
+  function refreshAll(){
+    const metrics = computeMetrics();
+    renderKPIs(metrics);
+    renderSales30(metrics);
+    renderSalesVsExp(metrics);
+    renderMonthly(metrics);
+    renderPayment(metrics);
+    renderSource(metrics);
+    renderTopItems(metrics);
+    renderRecent(metrics);
+  }
+
+  // Presets / buttons
+  document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+  document.getElementById('exportBtn').addEventListener('click', ()=> exportCSV(computeMetrics()));
+  document.getElementById('preset').addEventListener('change', function(){
+    const v = this.value;
+    const today = new Date(), yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    if(v==='today'){ const d = today.toISOString().slice(0,10); document.getElementById('f_from').value=d; document.getElementById('f_to').value=d;}
+    if(v==='yesterday'){ const d=yesterday.toISOString().slice(0,10); document.getElementById('f_from').value=d; document.getElementById('f_to').value=d;}
+    if(v==='month'){ const d=new Date(); document.getElementById('f_from').value=new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10); document.getElementById('f_to').value=new Date().toISOString().slice(0,10); }
+    if(v==='year'){ const d=new Date(); document.getElementById('f_from').value=new Date(d.getFullYear(),0,1).toISOString().slice(0,10); document.getElementById('f_to').value=new Date().toISOString().slice(0,10); }
+    refreshAll();
+  });
+
+  // auto-refresh every 6s
+  setInterval(refreshAll, 6000);
+
+  // initial run
+  refreshAll();
+
+  // expose for debugging
+  window.FAIDash = { refreshAll, computeMetrics };
+  </script>
 </body>
 </html>
