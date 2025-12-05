@@ -4,372 +4,142 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard — FAI FAI POS</title>
+
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
   <style>
-    /* Extra small dashboard tweaks */
-    .container{padding:14px;max-width:1200px;margin:0 auto}
-    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
-    .kpi{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
-    .kpi h4{margin:0;color:#666;font-size:13px}
-    .kpi .val{font-size:20px;font-weight:700;margin-top:6px}
-    .charts{display:grid;grid-template-columns:1fr 360px;gap:12px}
-    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
-    .small{color:#666;font-size:13px}
-    .flex{display:flex;gap:8px;align-items:center}
+    body{font-family:Inter,system-ui,Arial;margin:0;background:#f6f7fb;color:#111}
+    .container{max-width:1200px;margin:18px auto;padding:12px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .kpi-title{font-size:13px;color:#666}
+    .kpi-val{font-size:20px;font-weight:700;margin-top:6px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .btn{padding:8px 10px;border-radius:8px;border:0;background:#0b74de;color:#fff;cursor:pointer}
+    .muted{background:#eee;color:#333}
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:12px}
     .right-col{display:flex;flex-direction:column;gap:12px}
     .list{list-style:none;padding:0;margin:0}
     .list li{padding:8px;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;align-items:center}
-    .btn{padding:8px 10px;border-radius:6px;border:0;background:#f08a24;color:#fff;cursor:pointer}
-    .muted{background:#eee;color:#444}
-    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    @media(max-width:980px){
-      .kpi-row{grid-template-columns:repeat(2,1fr)}
-      .charts{grid-template-columns:1fr}
-      .right-col{width:100%}
-    }
+    @media(max-width:980px){ .kpi-grid{grid-template-columns:repeat(2,1fr)} .layout{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
-  <header class="topbar"><h1>Dashboard — FAI FAI POS</h1></header>
-
-  <main class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="small">Admin dashboard • Live data from local POS</div>
-      <div class="flex">
+  <div class="container">
+    <div class="topbar">
+      <div><h2 style="margin:0">FAI FAI POS — Dashboard</h2><div class="small">Live reports • Sales • Expenses • Profit</div></div>
+      <div>
         <button id="btnRefresh" class="btn muted">Refresh</button>
         <button id="btnExport" class="btn">Export CSV</button>
       </div>
     </div>
 
-    <div class="kpi-row">
-      <div class="kpi card">
-        <h4>Total Orders</h4>
-        <div id="k_orders" class="val">0</div>
-        <div class="small">Count of completed sales</div>
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="card">
+        <div class="kpi-title">Total Orders</div>
+        <div id="k_orders" class="kpi-val">0</div>
       </div>
-      <div class="kpi card">
-        <h4>Gross Revenue</h4>
-        <div id="k_revenue" class="val">AED 0.00</div>
-        <div class="small">Sum of sales totals</div>
+      <div class="card">
+        <div class="kpi-title">Gross Revenue</div>
+        <div id="k_revenue" class="kpi-val">AED 0.00</div>
       </div>
-      <div class="kpi card">
-        <h4>Estimated Profit</h4>
-        <div id="k_profit" class="val">AED 0.00 (0%)</div>
-        <div class="small">Profit % configurable in settings</div>
+      <div class="card">
+        <div class="kpi-title">Total Expenses</div>
+        <div id="k_expenses" class="kpi-val">AED 0.00</div>
       </div>
-      <div class="kpi card">
-        <h4>Pending Orders</h4>
-        <div id="k_pending" class="val">0</div>
-        <div class="small">Orders waiting for payment or processing</div>
+      <div class="card">
+        <div class="kpi-title">Net (Revenue − Expenses)</div>
+        <div id="k_net" class="kpi-val">AED 0.00</div>
       </div>
     </div>
 
+    <!-- Opening/Closing row -->
+    <div class="kpi-grid" style="margin-bottom:18px">
+      <div class="card">
+        <div class="kpi-title">Opening Amount</div>
+        <div id="k_opening" class="kpi-val">AED 0.00</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">Closing Amount</div>
+        <div id="k_closing" class="kpi-val">AED 0.00</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">Pending Orders</div>
+        <div id="k_pending" class="kpi-val">0</div>
+      </div>
+      <div class="card">
+        <div class="kpi-title">Estimated Profit %</div>
+        <div id="k_profitpct" class="kpi-val">30%</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
     <div class="filters">
       <label>From: <input type="date" id="f_from"></label>
       <label>To: <input type="date" id="f_to"></label>
       <button id="presetToday" class="btn muted">Today</button>
       <button id="presetYesterday" class="btn muted">Yesterday</button>
       <button id="presetMonth" class="btn muted">This Month</button>
+      <button id="presetYear" class="btn muted">This Year</button>
       <label style="margin-left:8px">Profit % <input id="profitPct" type="number" value="30" style="width:70px;padding:6px;border-radius:6px;border:1px solid #ddd"></label>
     </div>
 
-    <div class="charts">
+    <!-- Charts + Right column -->
+    <div class="layout">
       <div>
-        <div class="card">
-          <h3>Sales Over Last 30 Days</h3>
-          <canvas id="lineSales" height="120"></canvas>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="margin:0 0 8px 0">Sales (Last 30 days)</h3>
+          <canvas id="chartSales30" height="120"></canvas>
         </div>
 
-        <div style="margin-top:12px" class="card">
-          <h3>Top Selling Items</h3>
-          <div id="topItems" class="small"></div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="margin:0 0 8px 0">Sales vs Expenses (30 days)</h3>
+          <canvas id="chartSalesVsExpenses" height="120"></canvas>
         </div>
 
-        <div style="margin-top:12px" class="card">
-          <h3>Low Stock Alerts</h3>
-          <div id="lowStock" class="small"></div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="margin:0 0 8px 0">Monthly Sales (This Year)</h3>
+          <canvas id="chartMonthly" height="120"></canvas>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Top Items</h3>
+          <canvas id="chartTopItems" height="140"></canvas>
         </div>
       </div>
 
       <div class="right-col">
         <div class="card">
-          <h3>Payment Split</h3>
-          <canvas id="piePayment" height="220"></canvas>
+          <h3 style="margin:0 0 8px 0">Payment Split</h3>
+          <canvas id="chartPayment" height="180"></canvas>
         </div>
 
         <div class="card">
-          <h3>Order Source</h3>
-          <canvas id="pieSource" height="140"></canvas>
+          <h3 style="margin:0 0 8px 0">Order Source</h3>
+          <canvas id="chartSource" height="140"></canvas>
         </div>
 
         <div class="card">
-          <h3>Recent Orders</h3>
-          <ul id="recentOrders" class="list small"></ul>
+          <h3 style="margin:0 0 8px 0">Recent Orders</h3>
+          <ul id="recentOrders" class="list"></ul>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Recent Expenses</h3>
+          <ul id="recentExpenses" class="list"></ul>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
-<script>
-/* Dashboard logic — uses your app-admin.js FFP helpers:
-   - FFP.getSales(), FFP.getOrders(), FFP.getProducts(), FFP.fmt()
-   Make sure app-admin.js is included in the pages that link to dashboard.html
-*/
+  <!-- Optional Firebase: create database_config.js with your config if you want Firestore -->
+  <!-- <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="database_config.js"></script> -->
 
-if(!window.FFP){
-  console.warn('FFP helper not found. Make sure app-admin.js is loaded in your site.');
-}
-
-// utilities
-function fmtMoney(v){ return (FFP && FFP.fmt ? FFP.fmt(v) : 'AED ' + Number(v||0).toFixed(2)); }
-function uid(prefix='id'){ return prefix + '-' + Math.random().toString(36).slice(2,9); }
-function dateKey(d){ return d.toISOString().slice(0,10); }
-function parseISO(s){ return s ? new Date(s) : new Date(); }
-
-// UI refs
-const elOrders = document.getElementById('k_orders');
-const elRevenue = document.getElementById('k_revenue');
-const elProfit = document.getElementById('k_profit');
-const elPending = document.getElementById('k_pending');
-const elTopItems = document.getElementById('topItems');
-const elLowStock = document.getElementById('lowStock');
-const elRecent = document.getElementById('recentOrders');
-const fromInput = document.getElementById('f_from');
-const toInput = document.getElementById('f_to');
-const profitPctInput = document.getElementById('profitPct');
-
-let chartLine = null, chartPie = null, chartSource = null;
-
-// read DB
-function readDB(){
-  const sales = (FFP && FFP.getSales) ? FFP.getSales() : JSON.parse(localStorage.getItem('ff_sales')||'[]');
-  const orders = (FFP && FFP.getOrders) ? FFP.getOrders() : JSON.parse(localStorage.getItem('ff_orders')||'[]');
-  const products = (FFP && FFP.getProducts) ? FFP.getProducts() : JSON.parse(localStorage.getItem('ff_products')||'[]');
-  const settings = JSON.parse(localStorage.getItem('ff_settings')||'{"profitPercent":30,"currency":"AED"}');
-  return { sales, orders, products, settings };
-}
-
-// filter by date range (inclusive)
-function filterByRange(arr, dateField){
-  const from = fromInput.value ? new Date(fromInput.value + 'T00:00:00') : null;
-  const to = toInput.value ? new Date(toInput.value + 'T23:59:59') : null;
-  if(!from && !to) return arr;
-  return arr.filter(item=>{
-    const d = item[dateField] ? new Date(item[dateField]) : (item.created ? new Date(item.created) : new Date());
-    if(from && d < from) return false;
-    if(to && d > to) return false;
-    return true;
-  });
-}
-
-function computeMetrics(){
-  const db = readDB();
-  const salesAll = db.sales || [];
-  const ordersAll = db.orders || [];
-
-  // apply date range to sales for charts & KPIs
-  const sales = filterByRange(salesAll, 'created');
-  const orders = ordersAll || [];
-
-  const totalCount = sales.length;
-  const gross = sales.reduce((s,x)=>{
-    if(x.total) return s + Number(x.total);
-    if(x.items) return s + x.items.reduce((a,i)=>a + (Number(i.price || 0) * Number(i.qty || 1)),0);
-    return s;
-  },0);
-
-  const profitPct = Number(profitPctInput.value || db.settings.profitPercent || 30);
-  const profit = gross * (profitPct/100);
-
-  // pending orders: any kitchen order with status new/in-progress OR sale with not-paid
-  const pendingKitchen = orders.filter(o=> o.type==='kitchen' && (o.status==='new' || o.status==='in-progress' || !o.status)).length;
-  const pendingSales = orders.filter(o=> o.type==='sale' && !(o.status==='paid' || o.paid)).length;
-  const pending = pendingKitchen + pendingSales;
-
-  // payment split
-  const payments = { cash:0, visa:0, talabat:0, noon:0, other:0 };
-  sales.forEach(s=>{
-    const payment = (s.payment || s.paymentMethod || 'cash').toString().toLowerCase();
-    const val = s.total || (s.items ? s.items.reduce((a,i)=>a + (Number(i.price||0) * Number(i.qty||1)),0) : 0);
-    if(payment.includes('cash')) payments.cash += Number(val);
-    else if(payment.includes('visa') || payment.includes('card')) payments.visa += Number(val);
-    else if(payment.includes('talabat')) payments.talabat += Number(val);
-    else if(payment.includes('noon')) payments.noon += Number(val);
-    else payments.other += Number(val);
-  });
-
-  // order source split (use s.source, or check s.table or metadata)
-  const sources = { dinein:0, takeaway:0, talabat:0, noon:0, other:0 };
-  sales.forEach(s=>{
-    const src = (s.source || s.orderSource || '').toString().toLowerCase();
-    if(src.includes('talabat')) sources.talabat += Number(s.total || 0);
-    else if(src.includes('noon')) sources.noon += Number(s.total || 0);
-    else if(src.includes('take') || src.includes('delivery')) sources.takeaway += Number(s.total || 0);
-    else if(src.includes('dine') || src.includes('table')) sources.dinein += Number(s.total || 0);
-    else sources.other += Number(s.total || 0);
-  });
-
-  return { totalCount, gross, profitPct, profit, pending, payments, sources, sales, orders, products: db.products };
-}
-
-// build last N days labels
-function rangeDays(n){
-  const out=[];
-  const now = new Date();
-  for(let i=n-1;i>=0;i--){
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
-    out.push(d.toISOString().slice(0,10));
-  }
-  return out;
-}
-
-function renderKPIs(metrics){
-  elOrders.textContent = metrics.totalCount;
-  elRevenue.textContent = fmtMoney(metrics.gross);
-  elProfit.textContent = `${fmtMoney(metrics.profit)} (${metrics.profitPct}%)`;
-  elPending.textContent = metrics.pending;
-}
-
-function renderLineChart(metrics){
-  const labels = rangeDays(30);
-  // prepare date->value map
-  const map = {}; labels.forEach(l=> map[l]=0);
-  metrics.sales.forEach(s=>{
-    const key = (s.created||s.createdAt||'').slice(0,10);
-    if(key && map.hasOwnProperty(key)) map[key] += Number(s.total || (s.items ? s.items.reduce((a,i)=>a + (Number(i.price||0) * Number(i.qty||1)),0) : 0));
-  });
-  const data = labels.map(l=> map[l] || 0);
-
-  const ctx = document.getElementById('lineSales');
-  if(chartLine) chartLine.destroy();
-  chartLine = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[{label:'Sales', data, fill:true, tension:0.3, borderWidth:2}] },
-    options:{ responsive:true, plugins:{legend:{display:false}} }
-  });
-}
-
-function renderPiePayment(metrics){
-  const ctx = document.getElementById('piePayment');
-  if(chartPie) chartPie.destroy();
-  chartPie = new Chart(ctx, {
-    type:'pie',
-    data:{
-      labels:['Cash','Visa','Talabat','Noon','Other'],
-      datasets:[{ data:[metrics.payments.cash, metrics.payments.visa, metrics.payments.talabat, metrics.payments.noon, metrics.payments.other] }]
-    },
-    options:{ responsive:true }
-  });
-}
-
-function renderPieSource(metrics){
-  const ctx = document.getElementById('pieSource');
-  if(chartSource) chartSource.destroy();
-  chartSource = new Chart(ctx, {
-    type:'doughnut',
-    data:{
-      labels:['Dine-In','Takeaway','Talabat','Noon','Other'],
-      datasets:[{ data:[metrics.sources.dinein, metrics.sources.takeaway, metrics.sources.talabat, metrics.sources.noon, metrics.sources.other] }]
-    },
-    options:{ responsive:true }
-  });
-}
-
-function renderTopItems(metrics){
-  const products = metrics.products || [];
-  const sales = metrics.sales || [];
-  const counts = {}; // id -> qty & revenue
-  sales.forEach(s=>{
-    (s.items||[]).forEach(it=>{
-      const id = it.id || it.name;
-      if(!counts[id]) counts[id] = { name: it.name || id, qty:0, rev:0 };
-      counts[id].qty += Number(it.qty || 1);
-      counts[id].rev += (Number(it.price || 0) * Number(it.qty || 1));
-    });
-  });
-  // convert to array sorted
-  const arr = Object.keys(counts).map(k=> ({ id:k, ...counts[k] }) ).sort((a,b)=> b.qty - a.qty).slice(0,10);
-  elTopItems.innerHTML = arr.length ? arr.map(x=>`<div style="padding:6px;border-bottom:1px dashed #eee">${x.name} • Qty: ${x.qty} • ${fmtMoney(x.rev)}</div>`).join('') : '<div class="small">No sales yet</div>';
-}
-
-function renderLowStock(metrics){
-  const products = metrics.products || [];
-  const low = products.filter(p=> typeof p.stock !== 'undefined' && Number(p.stock) <= (Number(p.lowThreshold || 10)));
-  if(!low.length) { elLowStock.innerHTML = '<div class="small">No low-stock items</div>'; return; }
-  elLowStock.innerHTML = low.map(p=>`<div style="padding:6px;border-bottom:1px dashed #eee"><strong>${p.name}</strong> • Stock: ${p.stock}</div>`).join('');
-}
-
-function renderRecent(metrics){
-  const sales = metrics.sales || [];
-  const orders = metrics.orders || [];
-  // show last 12 sales & kitchen orders combined, sorted by created
-  const recent = (sales.concat(orders)).map(r=>({ id: r.id || r.orderId || uid('x'), created: r.created || r.createdAt || new Date().toISOString(), summary: (r.items? r.items.map(i=>i.name+' x'+(i.qty||1)).join(', ') : (r.table || '')) , raw: r }));
-  recent.sort((a,b)=> new Date(b.created) - new Date(a.created));
-  const shown = recent.slice(0,12);
-  elRecent.innerHTML = shown.map(r=>`<li><div style="flex:1"><strong>${r.id}</strong><div class="small">${new Date(r.created).toLocaleString()}</div><div class="small">${r.summary}</div></div><div><button class="muted" onclick='viewOrder("${r.id.replace(/"/g,"\\\"")}")'>View</button></div></li>`).join('');
-  // store a map for view
-  window._dash_recent_map = {};
-  shown.forEach(r=> window._dash_recent_map[r.id] = r.raw);
-}
-
-function viewOrder(id){
-  const o = window._dash_recent_map && window._dash_recent_map[id];
-  const w = window.open('','order-'+id,'width=600,height=600');
-  w.document.write('<pre style="font-family:monospace">'+JSON.stringify(o,null,2)+'</pre>');
-  w.document.close();
-}
-
-function refreshAll(){
-  // compute metrics and render everything
-  const metrics = computeMetrics();
-  renderKPIs(metrics);
-  renderLineChart(metrics);
-  renderPiePayment(metrics);
-  renderPieSource(metrics);
-  renderTopItems(metrics);
-  renderLowStock(metrics);
-  renderRecent(metrics);
-}
-
-// presets
-document.getElementById('presetToday').onclick = ()=>{
-  const d = new Date().toISOString().slice(0,10);
-  fromInput.value = d; toInput.value = d; refreshAll();
-};
-document.getElementById('presetYesterday').onclick = ()=>{
-  const d = new Date(); d.setDate(d.getDate()-1); const k = d.toISOString().slice(0,10);
-  fromInput.value = k; toInput.value = k; refreshAll();
-};
-document.getElementById('presetMonth').onclick = ()=>{
-  const d = new Date(); fromInput.value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); toInput.value = new Date().toISOString().slice(0,10); refreshAll();
-};
-
-// export CSV of filtered sales/orders
-document.getElementById('btnExport').onclick = ()=>{
-  const metrics = computeMetrics();
-  const rows = [];
-  rows.push(['id','created','type','items','total','payment','source']);
-  metrics.sales.forEach(s=>{
-    const items = (s.items||[]).map(i=> `${i.name} x${i.qty||1}` ).join('; ');
-    rows.push([s.id, s.created || s.createdAt, 'sale', items, s.total || '', s.payment || '', s.source || '']);
-  });
-  // also include kitchen orders if needed
-  const csv = rows.map(r=> r.map(c=> `"${(''+c).replace(/"/g,'""')}"`).join(',')).join('\\n');
-  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pos-export.csv'; a.click(); URL.revokeObjectURL(url);
-};
-
-// Refresh button
-document.getElementById('btnRefresh').onclick = refreshAll;
-// profit pct change
-profitPctInput.onchange = refreshAll;
-fromInput.onchange = refreshAll;
-toInput.onchange = refreshAll;
-
-// initial render
-refreshAll();
-// auto refresh every 5s
-setInterval(refreshAll, 5000);
-</script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
