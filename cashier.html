@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><title>Cashier — FAI-FAI</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar"><h1>Cashier / POS</h1></header>
+<main style="padding:18px;display:grid;grid-template-columns:1fr 340px;gap:16px">
+  <section>
+    <div class="card">
+      <h3>Products</h3>
+      <div id="products" class="products-grid"></div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="card cart">
+      <h3>Cart</h3>
+      <div id="cartList"></div>
+      <div style="margin-top:12px" class="row">
+        <div style="flex:1"><strong>Total: <span id="cartTotal">AED 0.00</span></strong></div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Payment method</label>
+        <select id="paymentMethod">
+          <option value="cash">Cash</option>
+          <option value="visa">Visa</option>
+          <option value="talabat">Talabat</option>
+          <option value="noon">Noon</option>
+        </select>
+        <div style="margin-top:12px" class="row">
+          <button id="btnCheckout">Checkout & Print</button>
+          <button id="btnClear" class="mutebtn" style="margin-left:8px">Clear</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script src="app.js"></script>
+<script>
+let CART = [];
+function loadProducts(){
+  const db = POSDB.loadDB();
+  const el = document.getElementById('products');
+  el.innerHTML = db.products.map(p=>`
+    <div class="product">
+      <div><strong>${p.name}</strong></div>
+      <div class="small">${p.cat}</div>
+      <div style="margin-top:6px">${POSDB.fmtMoney(p.price)}</div>
+      <div style="margin-top:8px"><button onclick="addToCart('${p.id}')">Add</button></div>
+    </div>
+  `).join('');
+}
+function addToCart(pid){
+  const db = POSDB.loadDB(); const prod = db.products.find(x=>x.id===pid);
+  if(!prod) return;
+  const it = CART.find(i=>i.id===pid);
+  if(it) it.qty++; else CART.push({id:pid,name:prod.name,price:prod.price,qty:1});
+  renderCart();
+}
+function renderCart(){
+  const el = document.getElementById('cartList');
+  if(CART.length===0){ el.innerHTML='<div class="small">Cart empty</div>'; document.getElementById('cartTotal').textContent=POSDB.fmtMoney(0); return;}
+  el.innerHTML = CART.map(i=>`
+    <div class="row small" style="margin-bottom:8px">
+      <div style="flex:1">${i.name} <div class="small">x ${i.qty}</div></div>
+      <div style="text-align:right">${POSDB.fmtMoney(i.price*i.qty)}<br>
+        <button onclick="chgQty('${i.id}',-1)">-</button>
+        <button onclick="chgQty('${i.id}',1)">+</button>
+        <button onclick="rm('${i.id}')">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  const total = CART.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('cartTotal').textContent = POSDB.fmtMoney(total);
+}
+function chgQty(id,delta){
+  const it = CART.find(x=>x.id===id);
+  if(!it) return;
+  it.qty += delta;
+  if(it.qty<=0) CART = CART.filter(x=>x.id!==id);
+  renderCart();
+}
+function rm(id){ CART = CART.filter(x=>x.id!==id); renderCart(); }
+
+document.getElementById('btnCheckout').addEventListener('click',()=>{
+  if(CART.length===0) return alert('Cart empty');
+  const pm = document.getElementById('paymentMethod').value;
+  const order = { id: POSDB.uid('s'), items: CART.map(i=>({id:i.id,name:i.name,qty:i.qty,price:i.price})), paymentMethod:pm, total:CART.reduce((s,i)=>s+i.qty*i.price,0), created:Date.now() };
+  POSDB.addSale(order);
+  // receipt
+  const lines = [];
+  const db = POSDB.loadDB();
+  lines.push(db.settings.storeName || 'FAI FAI');
+  lines.push('Receipt: ' + order.id);
+  lines.push(new Date(order.created).toLocaleString());
+  lines.push('-------------------------');
+  order.items.forEach(it=> lines.push(`${it.name} x${it.qty}  ${POSDB.fmtMoney(it.price*it.qty)}`));
+  lines.push('-------------------------');
+  lines.push('Total: ' + POSDB.fmtMoney(order.total));
+  lines.push('Payment: ' + order.paymentMethod.toUpperCase());
+  const w = window.open('','_blank','width=400,height=600');
+  w.document.write('<pre style="font-family:monospace;">' + lines.join('\n') + '</pre>');
+  w.document.close();
+  w.focus();
+  w.print();
+  CART = []; renderCart();
+  alert('Sale recorded');
+  // update reports if needed
+  setTimeout(()=>{ if(typeof loadReports==='function') loadReports(); },500);
+});
+
+document.getElementById('btnClear').addEventListener('click',()=>{ CART=[]; renderCart(); });
+
+loadProducts(); renderCart();
+</script>
+</body>
+</html>
