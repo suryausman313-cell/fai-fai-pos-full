@@ -348,3 +348,6 @@ Order ID: ${order.id}
   }
 
 })();
+localStorage.setItem('ff_sales', JSON.stringify([{id:'s1',created:new Date().toISOString(),total:85,payment:'cash',items:[{name:'Juice',qty:1,price:85}],source:'dine'}]));
+localStorage.setItem('ff_expenses', JSON.stringify([{id:'e1',created:new Date().toISOString(),amount:12,note:'Milk'}]));
+localStorage.setItem('ff_registers', JSON.stringify([{date:new Date().toISOString().slice(0,10),opening:100,closing:200}]));
