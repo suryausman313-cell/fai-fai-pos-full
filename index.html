@@ -1,54 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FAI POS</title>
-
-    <!-- Manifest -->
-    <link rel="manifest" href="manifest.json" />
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAI FAI POS - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header class="topbar">
-    <h1>FAI POS</h1>
+    <h1>Dashboard – FAI FAI POS</h1>
 </header>
 
-<main class="home-grid">
+<main class="dashboard">
 
-    <a class="big-btn" href="cashier.html">Cashier POS</a>
+    <section class="card">
+        <h3>Total Orders</h3>
+        <p id="totalOrders">0</p>
+    </section>
 
-    <a class="big-btn" href="waiter.html">Waiter POS</a>
+    <section class="card">
+        <h3>Gross Revenue</h3>
+        <p id="grossRevenue">AED 0.00</p>
+    </section>
 
-    <a class="big-btn" href="kitchen.html">Kitchen Board</a>
+    <section class="card">
+        <h3>Total Expenses</h3>
+        <p id="totalExpenses">AED 0.00</p>
+    </section>
 
-    <a class="big-btn" href="admin.html">Admin Panel</a>
+    <section class="card">
+        <h3>Net Profit</h3>
+        <p id="netProfit">AED 0.00</p>
+    </section>
 
-    <a class="big-btn" href="reports.html">Reports</a>
-
-    <a class="big-btn" href="dashboard.html" style="background:#E2CC71; color:#000;">
-        Dashboard
-    </a>
+    <section class="card-full">
+        <h3>Sales Summary</h3>
+        <canvas id="salesChart" height="120"></canvas>
+    </section>
 
 </main>
 
-<footer class="footer">
-    Demo POS • LocalStorage • PWA Ready
-</footer>
-
-<!-- App JS -->
-<script src="app.js"></script>
-
-<!-- Register Service Worker -->
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
