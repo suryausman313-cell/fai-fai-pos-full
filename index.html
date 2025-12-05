@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FAI-FAI POS — Home</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><h1>FAI-FAI POS</h1></header>
+  <main class="home-grid">
+    <a class="big-btn" href="cashier.html">Cashier / POS</a>
+    <a class="big-btn" href="waiter.html">Waiter App</a>
+    <a class="big-btn" href="kitchen.html">Kitchen Board</a>
+    <a class="big-btn" href="admin.html">Admin Panel</a>
+    <a class="big-btn" href="reports.html">Reports</a>
+  </main>
+  <footer class="footer">Demo POS • LocalStorage • PWA ready</footer>
+  <script src="app.js"></script>
+  <script>
+    // register service worker if supported
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker?.register('service-worker.js').catch(e=>console.log('sw err',e));
+    }
+  </script>
+</body>
+</html>
