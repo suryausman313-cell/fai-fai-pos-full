@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Reports</title><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><h1>Reports</h1></header>
+<main style="padding:18px">
+  <div class="card">
+    <h3>Sales Summary</h3>
+    <div id="summary"></div>
+    <div style="margin-top:12px"><button onclick="printReport()">Print Till Report</button> <button onclick="downloadCSV()">Export CSV</button></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>By Payment Method</h3>
+    <div>Cash: <b id="rCash">AED 0.00</b></div>
+    <div>Visa: <b id="rVisa">AED 0.00</b></div>
+    <div>Talabat: <b id="rTal">AED 0.00</b></div>
+    <div>Noon: <b id="rNoon">AED 0.00</b></div>
+  </div>
+</main>
+<script src="app.js"></script>
+<script>
+function loadReports(){
+  const db = POSDB.loadDB();
+  const sales = db.sales || [];
+  const total = sales.reduce((t,o)=> t + (o.total||o.items.reduce((a,i)=>a + (i.price*i.qty||0),0)), 0);
+  document.getElementById('summary').innerHTML = `<div class="small">Sales count: ${sales.length}</div><div class="small">Total: ${POSDB.fmtMoney(total)}</div>`;
+  let cash=0,visa=0,tal=0,noon=0;
+  sales.forEach(s=>{
+    const pm = (s.paymentMethod||s.paymentMethod||'cash');
+    if(pm==='cash') cash += s.total || s.items.reduce((a,i)=>a + i.price*i.qty,0);
+    if(pm==='visa') visa += s.total || s.items.reduce((a,i)=>a + i.price*i.qty,0);
+    if(pm==='talabat') tal += s.total || s.items.reduce((a,i)=>a + i.price*i.qty,0);
+    if(pm==='noon') noon += s.total || s.items.reduce((a,i)=>a + i.price*i.qty,0);
+  });
+  document.getElementById('rCash').textContent = POSDB.fmtMoney(cash);
+  document.getElementById('rVisa').textContent = POSDB.fmtMoney(visa);
+  document.getElementById('rTal').textContent = POSDB.fmtMoney(tal);
+  document.getElementById('rNoon').textContent = POSDB.fmtMoney(noon);
+}
+function downloadCSV(){
+  const db = POSDB.loadDB();
+  const rows = [['id','created','items','total','payment']];
+  db.sales.forEach(s=>{
+    const total = s.total || s.items.reduce((a,i)=>a + i.price*i.qty,0);
+    rows.push([s.id,new Date(s.created).toLocaleString(), s.items.map(it=>it.name+' x'+it.qty).join(';'), total, s.paymentMethod||'']);
+  });
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='sales.csv'; a.click(); URL.revokeObjectURL(url);
+}
+function printReport(){
+  const html = document.getElementById('summary').innerHTML + '<hr>' + document.getElementById('rCash').outerHTML + document.getElementById('rVisa').outerHTML + document.getElementById('rTal').outerHTML + document.getElementById('rNoon').outerHTML;
+  const w = window.open('','_blank'); w.document.write('<pre style="font-family:monospace;">'+html+'</pre>'); w.print();
+}
+loadReports();
+</script>
+</body>
+</html>
