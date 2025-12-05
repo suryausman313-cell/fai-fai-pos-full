@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Kitchen Board</title><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><h1>Kitchen Orders</h1></header>
+<main style="padding:18px">
+  <div id="ordersArea"></div>
+</main>
+<script src="app.js"></script>
+<script>
+function renderOrders(){
+  const db = POSDB.loadDB();
+  const orders = db.orders || [];
+  const area = document.getElementById('ordersArea');
+  if(!orders.length) { area.innerHTML = '<div class="small card">No orders</div>'; return; }
+  area.innerHTML = orders.map(o=>`
+    <div class="card kitchen-order">
+      <div class="row"><strong>Table: ${o.table}</strong><div style="margin-left:auto">${new Date(o.created).toLocaleTimeString()}</div></div>
+      <div style="margin-top:8px">${o.items.map(it=>`<div>${it.name} x${it.qty}</div>`).join('')}</div>
+      <div style="margin-top:8px"><button onclick="start('${o.id}')">Start</button> <button onclick="done('${o.id}')">Done</button></div>
+    </div>
+  `).join('');
+}
+function start(id){ POSDB.updateKitchenOrder(id,{status:'in-progress'}); renderOrders(); }
+function done(id){ POSDB.updateKitchenOrder(id,{status:'done'}); POSDB.removeKitchenOrder(id); renderOrders(); }
+renderOrders(); setInterval(renderOrders,2500);
+</script>
+</body>
+</html>
