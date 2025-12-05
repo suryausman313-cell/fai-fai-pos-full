@@ -1,44 +1,75 @@
-/* ===============================================
-   FAI FAI POS — FULL UPGRADED DATABASE ENGINE
-   Admin + Cashier + Waiter Roles + Dashboard Data
-   =============================================== */
+/* FAI FAI POS — FULL APP ENGINE (Admin + Cashier + Waiter + Kitchen) */
 
+/* ========== GLOBAL CONFIG ========== */
 const DB_KEY = "fai_fai_pos_v3";
 
-/* DEFAULT DATABASE */
+/* ========== DEFAULT DATABASE ========= */
 const DEFAULT_DB = {
-  products: [],   
-  orders: [],     
-  sales: [],      
-  expenses: [],   
-  registers: [],  
+  products: [],
+  orders: [],
+  sales: [],
+  expenses: [],
+  registers: [],
   staff: [
     { id: "admin", name: "Admin", role: "admin", pass: "admin123" }
   ],
   settings: {
-    storeName: "FAI FAI JUICE",
-    currency: "AED",
-    tax: 0,
-    service: 0
-  },
-  printers: {
-    kitchen: null,
-    cashier: null
+    storeName: "FAI FAI POS",
+    currency: "AED"
   }
 };
 
-/* ------------------ CORE DB ------------------ */
+/* ========== ROLE PERMISSIONS ========== */
+const ROLE_PERMISSIONS = {
+  admin: {
+    dashboard: true,
+    products: true,
+    orders: true,
+    sales: true,
+    staff: true,
+    settings: true
+  },
+  cashier: {
+    dashboard: true,
+    products: false,
+    orders: true,
+    sales: true,
+    staff: false,
+    settings: false
+  },
+  waiter: {
+    dashboard: true,
+    products: false,
+    orders: true,
+    sales: false,
+    staff: false,
+    settings: false
+  },
+  kitchen: {
+    dashboard: true,
+    products: false,
+    orders: true,
+    sales: false,
+    staff: false,
+    settings: false
+  }
+};
+
+function can(role, feature) {
+  return ROLE_PERMISSIONS[role]?.[feature] === true;
+}
+
+/* ========== DATABASE FUNCTIONS ========== */
 function loadDB() {
+  const raw = localStorage.getItem(DB_KEY);
+  if (!raw) {
+    localStorage.setItem(DB_KEY, JSON.stringify(DEFAULT_DB));
+    return structuredClone(DEFAULT_DB);
+  }
   try {
-    const raw = localStorage.getItem(DB_KEY);
-    if (!raw) {
-      saveDB(DEFAULT_DB);
-      return structuredClone(DEFAULT_DB);
-    }
     return JSON.parse(raw);
   } catch (e) {
-    console.error("DB Load Error", e);
-    saveDB(DEFAULT_DB);
+    console.error("DB load failed", e);
     return structuredClone(DEFAULT_DB);
   }
 }
@@ -47,27 +78,52 @@ function saveDB(db) {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
 }
 
-/* ------------------ STAFF SYSTEM ------------------ */
-function addStaff(user) {
-  const db = loadDB();
-  db.staff.push(user);
-  saveDB(db);
+/* ========== UTILS ========== */
+function uid(pre = "id") {
+  return pre + "_" + Math.random().toString(36).substr(2, 9);
 }
 
-function loginStaff(id, pass) {
+function fmtMoney(v) {
   const db = loadDB();
-  return db.staff.find((u) => u.id === id && u.pass === pass) || null;
+  return (db.settings.currency || "AED") + " " + Number(v).toFixed(2);
 }
 
-function updateStaffPassword(id, newPass) {
+/* ========== AUTH SYSTEM ========== */
+function loginUser(id, pass) {
   const db = loadDB();
-  db.staff = db.staff.map((x) =>
-    x.id === id ? { ...x, pass: newPass } : x
-  );
-  saveDB(db);
+  const u = db.staff.find(s => s.id === id && s.pass === pass);
+  if (!u) return null;
+
+  localStorage.setItem("pos_logged_user", JSON.stringify(u));
+  return u;
 }
 
-/* ------------------ PRODUCTS ------------------ */
+function getLoggedUser() {
+  try {
+    return JSON.parse(localStorage.getItem("pos_logged_user"));
+  } catch {
+    return null;
+  }
+}
+
+function logoutUser() {
+  localStorage.removeItem("pos_logged_user");
+}
+
+function protectPage(feature) {
+  const u = getLoggedUser();
+  if (!u) {
+    alert("Please Login First");
+    location.href = "index.html";
+    return;
+  }
+  if (!can(u.role, feature)) {
+    alert("Access Denied");
+    history.back();
+  }
+}
+
+/* ========== PRODUCT FUNCTIONS ========== */
 function getProducts() {
   return loadDB().products;
 }
@@ -78,115 +134,107 @@ function addProduct(p) {
   saveDB(db);
 }
 
-function setProducts(list) {
+function updateProduct(id, patch) {
   const db = loadDB();
-  db.products = list;
+  db.products = db.products.map(p => (p.id === id ? { ...p, ...patch } : p));
   saveDB(db);
 }
 
-/* ------------------ ORDERS (Kitchen + Hold) ------------------ */
-function createKitchenOrder(order) {
+function removeProduct(id) {
   const db = loadDB();
-  db.orders.push(order);
+  db.products = db.products.filter(p => p.id !== id);
   saveDB(db);
 }
 
-function updateKitchenOrder(id, patch) {
+/* ========== ORDER FUNCTIONS ========== */
+function createOrder(o) {
   const db = loadDB();
-  db.orders = db.orders.map((o) =>
-    o.id === id ? { ...o, ...patch } : o
-  );
+  db.orders.push(o);
   saveDB(db);
 }
 
-function removeKitchenOrder(id) {
+function updateOrder(id, patch) {
   const db = loadDB();
-  db.orders = db.orders.filter((x) => x.id !== id);
+  db.orders = db.orders.map(o => (o.id === id ? { ...o, ...patch } : o));
   saveDB(db);
 }
 
-/* ------------------ SALES (Cashier Checkout) ------------------ */
-function addSale(sale) {
+function removeOrder(id) {
   const db = loadDB();
-  db.sales.push(sale);
+  db.orders = db.orders.filter(o => o.id !== id);
   saveDB(db);
 }
 
-/* ------------------ EXPENSES ------------------ */
-function addExpense(obj) {
+/* ========== SALES ========== */
+function addSale(s) {
   const db = loadDB();
-  db.expenses.push(obj);
+  db.sales.push(s);
   saveDB(db);
 }
 
-/* ------------------ REGISTERS ------------------ */
-function addRegister(day) {
+/* ========== STAFF CRUD ========== */
+function getStaff() {
+  return loadDB().staff;
+}
+
+function addStaff(st) {
   const db = loadDB();
-  db.registers.push(day);
+  db.staff.push(st);
   saveDB(db);
 }
 
-/* ------------------ DASHBOARD HELPERS ------------------ */
-function getTodaySalesTotal() {
-  const today = new Date().toISOString().slice(0, 10);
+function updateStaff(id, patch) {
   const db = loadDB();
-  return db.sales
-    .filter((s) => s.date.startsWith(today))
-    .reduce((t, x) => t + Number(x.total), 0);
+  db.staff = db.staff.map(s => (s.id === id ? { ...s, ...patch } : s));
+  saveDB(db);
 }
 
-function getTodayOrdersCount() {
-  const today = new Date().toISOString().slice(0, 10);
-  return loadDB().orders.filter((o) =>
-    o.created.startsWith(today)
-  ).length;
-}
-
-function getMonthlyData() {
-  const m = new Date().toISOString().slice(0, 7);
+function removeStaff(id) {
   const db = loadDB();
-  return {
-    sales: db.sales.filter((s) => s.date.startsWith(m)),
-    expenses: db.expenses.filter((e) => e.date.startsWith(m))
-  };
+  db.staff = db.staff.filter(s => s.id !== id);
+  saveDB(db);
 }
 
-/* ------------------ TOOLS ------------------ */
-function uid(prefix = "id") {
-  return prefix + "-" + Math.random().toString(36).slice(2, 9);
-}
-
-function fmtMoney(val) {
+/* ========== SETTINGS ========== */
+function saveSettings(obj) {
   const db = loadDB();
-  return (db.settings.currency || "AED") + " " + Number(val).toFixed(2);
+  db.settings = { ...db.settings, ...obj };
+  saveDB(db);
 }
 
-/* -------------- EXPORT API -------------- */
-window.POSDB = {
+/* ========== EXPORT TO WINDOW ========== */
+window.POS = {
   loadDB,
   saveDB,
+  uid,
+  fmtMoney,
 
+  // products
   getProducts,
   addProduct,
-  setProducts,
+  updateProduct,
+  removeProduct,
 
-  createKitchenOrder,
-  updateKitchenOrder,
-  removeKitchenOrder,
+  // orders
+  createOrder,
+  updateOrder,
+  removeOrder,
 
+  // sales
   addSale,
 
-  addExpense,
-  addRegister,
-
+  // staff
+  getStaff,
   addStaff,
-  loginStaff,
-  updateStaffPassword,
+  updateStaff,
+  removeStaff,
 
-  getTodaySalesTotal,
-  getTodayOrdersCount,
-  getMonthlyData,
+  // settings
+  saveSettings,
 
-  uid,
-  fmtMoney
+  // auth
+  loginUser,
+  getLoggedUser,
+  logoutUser,
+  protectPage
 };
