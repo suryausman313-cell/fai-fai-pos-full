@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAI FAI MENU</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h2 style="text-align:center;">🍹 FAI FAI MENU</h2>
+
+    <div id="menuList" class="menu-grid"></div>
+
+    <button onclick="window.location.href='waiter.html'" class="btn">Back (Waiter)</button>
+
+<script>
+const menuData = [
+    { id: "m1", name: "Lemon Juice", price: 12 },
+    { id: "m2", name: "Avocado Juice", price: 18 },
+    { id: "m3", name: "Pomegranate", price: 20 },
+    { id: "m4", name: "Orange Juice", price: 15 },
+    { id: "m5", name: "Mango Shake", price: 17 }
+];
+
+function loadMenu(){
+    const container = document.getElementById("menuList");
+    container.innerHTML = "";
+
+    menuData.forEach(item => {
+        container.innerHTML += `
+            <div class="menu-item">
+                <h3>${item.name}</h3>
+                <p>AED ${item.price}</p>
+                <button onclick="addToOrder('${item.id}')">Add</button>
+            </div>
+        `;
+    });
+}
+
+function addToOrder(id){
+    let orders = JSON.parse(localStorage.getItem("ff_current_order")) || [];
+    let product = menuData.find(m => m.id === id);
+    orders.push(product);
+    localStorage.setItem("ff_current_order", JSON.stringify(orders));
+    alert(product.name + " Added!");
+}
+
+loadMenu();
+</script>
+
+<style>
+body{font-family:sans-serif;padding:20px;}
+.menu-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+.menu-item{
+    border:1px solid #ddd;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    background:#fafafa;
+}
+.menu-item button{
+    padding:10px;
+    margin-top:10px;
+    width:100%;
+}
+.btn{
+    padding:12px;
+    width:100%;
+    margin-top:25px;
+}
+</style>
+
+</body>
+</html>
