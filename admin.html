@@ -6,7 +6,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body><script>
+function logout() {
+    localStorage.removeItem("logged");
+    alert("Logged Out Successfully");
+    window.location.href = "login.html";
+}
+</script>
 <header class="topbar"><h1>Admin Panel</h1></header>
 <main style="padding:18px;display:grid;grid-template-columns:1fr 340px;gap:18px">
   <section>
