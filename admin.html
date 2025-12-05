@@ -6,14 +6,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
-<body><script>
+
+<!-- ✅ LOGIN PROTECTION -->
+<script>
+if (localStorage.getItem("adminLogged") !== "yes") {
+    alert("Please Login First");
+    window.location.href = "login.html";
+}
+</script>
+
+<body>
+<script>
 function logout() {
-    localStorage.removeItem("logged");
+    localStorage.removeItem("adminLogged");
     alert("Logged Out Successfully");
     window.location.href = "login.html";
 }
 </script>
+
 <header class="topbar"><h1>Admin Panel</h1></header>
+
 <main style="padding:18px;display:grid;grid-template-columns:1fr 340px;gap:18px">
   <section>
     <div class="card">
@@ -46,6 +58,7 @@ function logout() {
 </main>
 
 <script src="app.js"></script>
+
 <script>
 function renderProducts(){
   const products = POSDB.getProducts();
@@ -60,32 +73,43 @@ function renderProducts(){
     </div>
   `).join('');
 }
+
 function deleteProd(id){
   if(!confirm('Delete product?')) return;
   POSDB.setProducts(POSDB.getProducts().filter(x=>x.id!==id));
   renderProducts();
 }
+
 document.getElementById('addProd').addEventListener('click',async()=>{
   const name=document.getElementById('pname').value.trim();
   const price=parseFloat(document.getElementById('pprice').value)||0;
   const cat=document.getElementById('pcat').value.trim()||'General';
   if(!name) return alert('Name required');
   POSDB.addProduct({id:POSDB.uid('p'),name,price,cat});
-  document.getElementById('pname').value=''; document.getElementById('pprice').value=''; document.getElementById('pcat').value='';
+  document.getElementById('pname').value='';
+  document.getElementById('pprice').value='';
+  document.getElementById('pcat').value='';
   renderProducts();
 });
+
 document.getElementById('importSample').addEventListener('click', async ()=>{
   try{
-    const r = await fetch('products.json'); const data = await r.json();
+    const r = await fetch('products.json'); 
+    const data = await r.json();
     const db = POSDB.loadDB();
     data.forEach(p=>{
-      if(!db.products.find(x=>x.name===p.name)) db.products.push(Object.assign({id:POSDB.uid('p')},p));
+      if(!db.products.find(x=>x.name===p.name)) 
+        db.products.push(Object.assign({id:POSDB.uid('p')},p));
     });
     POSDB.saveDB(db);
     renderProducts();
     alert('Imported');
-  }catch(e){ alert('Import failed'); console.error(e); }
+  }catch(e){ 
+    alert('Import failed'); 
+    console.error(e); 
+  }
 });
+
 document.getElementById('saveSettings').addEventListener('click',()=>{
   const db = POSDB.loadDB();
   db.settings.storeName = document.getElementById('storeName').value||db.settings.storeName;
@@ -93,6 +117,7 @@ document.getElementById('saveSettings').addEventListener('click',()=>{
   POSDB.saveDB(db);
   alert('Saved');
 });
+
 document.addEventListener('DOMContentLoaded',()=>{
   const db = POSDB.loadDB();
   document.getElementById('storeName').value = db.settings.storeName || '';
@@ -100,7 +125,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderProducts();
 });
 </script>
-</body><script>
-  POS.protectPage("settings");
-</script>
+
+</body>
 </html>
