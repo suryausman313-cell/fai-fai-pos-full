@@ -1,1 +1,65 @@
-<!DOCTYPE html><html><body><h2>Admin Panel</h2></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Admin — FAI FAI POS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>Admin Panel</h1>
+  <div class="top-actions">
+    <button onclick="logout()">Logout</button>
+    <a class="btn" href="index.html">Open POS</a>
+  </div>
+</header>
+
+<main class="admin-grid container">
+  <section class="card">
+    <h3>Add Category</h3>
+    <input id="catName" placeholder="Category name (e.g. Juice)">
+    <button id="addCat">Add Category</button>
+    <h4>Categories</h4>
+    <div id="catList"></div>
+  </section>
+
+  <section class="card">
+    <h3>Add Product</h3>
+    <input id="pname" placeholder="Product name">
+    <input id="pprice" placeholder="Price" type="number">
+    <select id="pcat"></select>
+    <button id="addProd">Add product</button>
+    <h4>Products</h4>
+    <div id="productList"></div>
+  </section>
+
+  <aside class="card">
+    <h3>Users</h3>
+    <input id="uemail" placeholder="Email">
+    <input id="upass" placeholder="Password">
+    <select id="urole">
+      <option value="admin">Admin</option>
+      <option value="cashier">Cashier</option>
+      <option value="waiter">Waiter</option>
+      <option value="kitchen">Kitchen</option>
+    </select>
+    <button id="addUser">Add User</button>
+    <h4>User list</h4>
+    <div id="userList"></div>
+  </aside>
+
+  <section class="card">
+    <h3>Import sample</h3>
+    <button id="importSample">Import products.json</button>
+    <h3>Settings</h3>
+    <label>Store <input id="storeNameAdmin"></label>
+    <label>Currency <input id="currencyAdmin"></label>
+    <button id="saveSettings">Save</button>
+  </section>
+</main>
+
+<script src="scripts/app.js"></script>
+<script src="scripts/admin.js"></script>
+</body>
+</html>
