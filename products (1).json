@@ -1,1 +1,5 @@
-{"products":[]}
+[
+  {"name":"Mango Juice","price":10,"cat":"c-juice"},
+  {"name":"Lemon Juice","price":10,"cat":"c-juice"},
+  {"name":"Vanilla Ice Cream","price":5,"cat":"c-ice"}
+]
