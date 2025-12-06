@@ -1,1 +1,51 @@
-<!DOCTYPE html><html><body><h1>FAI FAI POS</h1></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FAI FAI POS — Cashier</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+<header class="topbar">
+  <h1>FAI FAI POS <span class="small">Cashier</span></h1>
+  <div class="top-actions">
+    <button id="openCart">Cart (<span id="cartCount">0</span>)</button>
+    <a class="btn" href="login.html">Admin</a>
+  </div>
+</header>
+
+<main class="container">
+  <aside class="left">
+    <div id="categories" class="cards"></div>
+  </aside>
+
+  <section class="menu">
+    <h2 id="catTitle">Menu</h2>
+    <div id="items" class="cards"></div>
+  </section>
+
+  <aside class="right">
+    <div class="card">
+      <h3>Cart</h3>
+      <div id="cartList"></div>
+      <div class="cart-footer">
+        <div>Total: <span id="grandTotal">AED 0.00</span></div>
+        <button id="checkoutBtn" class="wide">Checkout & Print</button>
+      </div>
+    </div>
+    <div class="card small">
+      <h4>Quick Settings</h4>
+      <label>Currency <input id="currency" value="AED"></label>
+      <label>Store name <input id="storeName" value="FAI FAI JUICE"></label>
+      <button id="saveQuick">Save</button>
+    </div>
+  </aside>
+</main>
+
+<!-- scripts -->
+<script src="scripts/app.js"></script>
+<script src="scripts/cashier.js"></script>
+</body>
+</html>
