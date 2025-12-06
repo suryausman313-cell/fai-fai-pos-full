@@ -1,6 +1,0 @@
-[
-  {"id":"p1","name":"Orange Juice","price":12,"cat":"Juices"},
-  {"id":"p2","name":"Lemon Juice","price":10,"cat":"Juices"},
-  {"id":"p3","name":"Iced Coffee","price":15,"cat":"Drinks"},
-  {"id":"p4","name":"Chicken Roll","price":20,"cat":"Food"}
-]
