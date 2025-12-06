@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FAI FAI POS - Login</title>
+    <style>
+        body {
+            margin:0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+        .box {
+            background: #ffffff;
+            width: 320px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px #0005;
+            text-align:center;
+        }
+        h2 {
+            margin-bottom:20px;
+            color:#333;
+            font-size:24px;
+        }
+        input {
+            width:100%;
+            padding:12px;
+            margin:10px 0;
+            border-radius:8px;
+            border:1px solid #ccc;
+            font-size:16px;
+        }
+        button {
+            width:100%;
+            padding:12px;
+            background:#28a745;
+            border:none;
+            color:white;
+            font-size:18px;
+            border-radius:8px;
+            cursor:pointer;
+        }
+        button:hover {
+            background:#218838;
+        }
+        .error {
+            color:red;
+            margin-top:10px;
+            font-size:14px;
+            display:none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Admin Login</h2>
+
+    <input id="email" type="text" placeholder="Enter Email">
+    <input id="password" type="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
+
+    <p class="error" id="errorMsg">Invalid Email or Password</p>
+</div>
+
+<script src="scripts/login.js"></script>
+
+</body>
+</html>
