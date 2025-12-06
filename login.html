@@ -1,55 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FAI FAI POS - Login</title>
+    <title>Login</title>
     <style>
         body {
             margin:0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+            font-family: Arial;
+            background:#f2f2f2;
             display:flex;
             justify-content:center;
             align-items:center;
             height:100vh;
         }
         .box {
-            background: #ffffff;
-            width: 320px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 0px 20px #0005;
+            background:white;
+            padding:25px;
+            border-radius:10px;
+            width:300px;
+            box-shadow:0 0 10px #0003;
             text-align:center;
-        }
-        h2 {
-            margin-bottom:20px;
-            color:#333;
-            font-size:24px;
         }
         input {
             width:100%;
             padding:12px;
             margin:10px 0;
-            border-radius:8px;
+            border-radius:5px;
             border:1px solid #ccc;
-            font-size:16px;
         }
         button {
             width:100%;
             padding:12px;
-            background:#28a745;
+            background:green;
             border:none;
             color:white;
-            font-size:18px;
-            border-radius:8px;
-            cursor:pointer;
+            border-radius:5px;
+            font-size:16px;
         }
-        button:hover {
-            background:#218838;
-        }
-        .error {
+        #error {
             color:red;
             margin-top:10px;
-            font-size:14px;
             display:none;
         }
     </style>
@@ -59,15 +48,30 @@
 <div class="box">
     <h2>Admin Login</h2>
 
-    <input id="email" type="text" placeholder="Enter Email">
-    <input id="password" type="password" placeholder="Enter Password">
+    <input id="email" type="text" placeholder="Email">
+    <input id="pass" type="password" placeholder="Password">
 
-    <button onclick="login()">Login</button>
+    <button onclick="check()">Login</button>
 
-    <p class="error" id="errorMsg">Invalid Email or Password</p>
+    <p id="error">Wrong Email or Password</p>
 </div>
 
-<script src="scripts/login.js"></script>
+<script>
+function check() {
+    let email = document.getElementById("email").value;
+    let pass = document.getElementById("pass").value;
+
+    // FIXED LOGIN DETAILS
+    let correctEmail = "admin";
+    let correctPass = "1234";
+
+    if (email === correctEmail && pass === correctPass) {
+        window.location.href = "home.html"; // yaha apni page ka naam likho
+    } else {
+        document.getElementById("error").style.display = "block";
+    }
+}
+</script>
 
 </body>
 </html>
