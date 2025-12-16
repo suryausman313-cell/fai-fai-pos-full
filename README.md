@@ -1,18 +1,21 @@
-# FAI FAI POS (static)
+# Advanced Static POS (Local)
 
-## How to use (local / GitHub pages)
-1. Create a new GitHub repo (public).
-2. Upload all files exactly as here to repo root.
-3. In repo Settings -> Pages -> set branch `main` / `/ (root)` and Save.
-4. Wait 1-3 minutes then open the pages URL (username.github.io/repo).
+This is a single-folder static Point-Of-Sale starter app that runs fully in the browser using `localStorage` as a DB.
+It includes: Dashboard, Products, Inventory, POS checkout, Reports, CSV export, Dark/Light mode.
 
-## Admin
-Default admin:
-- email: admin@313
-- password: 246800
+## How to use
+1. Create a folder `PosFullStatic`.
+2. Put `index.html`, `styles.css`, `app.js`, `README.md` files inside.
+3. Open `index.html` in a browser (or drag folder to GitHub and enable Pages).
+4. All data is stored locally in browser's localStorage under key `pos_local_db_v1`.
 
-## PWA / APK
-- After Pages works, you can use tools like `pwa2apk` or `bubblewrap` to generate Android APK from the hosted PWA.
+## To create a zip (Windows)
+- Right click folder → Send to → Compressed (zipped) folder.
 
-## Firebase (optional)
-- If you need realtime DB & printing across devices, create Firebase project and adapt `scripts/app.js` to sync.
+## To upload to GitHub (quick)
+- Create new repo → Upload files → Commit.
+- Then Settings → Pages → Deploy from `main` branch → Save (optional for live site)
+
+## Notes
+- Works offline (no server).
+- To reset data: Settings → Reset All Local Data.
